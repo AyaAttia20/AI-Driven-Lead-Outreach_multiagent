@@ -45,11 +45,7 @@ This system is more than just a message generator — it's a complete **AI-power
 
 
 ---
- 
-- [APP Link](https://0d56b7b215052f9670.gradio.live/)
-(But its time is limited and should be updated.)
 
-  
 ## ⚙️ Installation
 
 ```bash
