@@ -1,7 +1,7 @@
 streamlit==1.35.0
-crewai==0.30.5
-google-generativeai
-cohere
-chromadb
-pysqlite3-binary
-embedchain
+crewai==0.28.8
+google-generativeai==0.2.3
+cohere==4.7.2
+chromadb==0.3.23
+pysqlite3-binary==1.0.3
+embedchain==0.0.13
