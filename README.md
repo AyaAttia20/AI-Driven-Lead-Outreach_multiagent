@@ -10,7 +10,7 @@ Built with:
 - Google Gemini (`gemini-1.5-flash`)
 - Cohere (`command`)
 - LangChain tools
-- [Gradio](https://0d56b7b215052f9670.gradio.live/) for UI
+- [Gradio](https://www.gradio.app) for UI
 
 ---
 
@@ -44,6 +44,11 @@ This system is more than just a message generator — it's a complete **AI-power
 
 
 
+---
+ 
+- [APP Link](https://0d56b7b215052f9670.gradio.live/) for UI 
+
+  
 ## ⚙️ Installation
 
 ```bash
