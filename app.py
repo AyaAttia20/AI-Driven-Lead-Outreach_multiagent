@@ -15,12 +15,11 @@ os.environ["SERPER_API_KEY"] = st.secrets["SERPER_API_KEY"]
 import google.generativeai as genai
 import cohere
 
-from crewai import Crew, Agent, Task, LLM
+from crewai import Crew, Agent, Task
 from crewai_tools import DirectoryReadTool, FileReadTool, SerperDevTool
 
-# Configure Gemini
+# Configure APIs
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-1.5-flash')
 co = cohere.Client(os.environ["COHERE_API_KEY"])
 
 # Dummy Sentiment Tool (no inheritance from BaseTool)
@@ -36,30 +35,23 @@ directory_tool = DirectoryReadTool(directory="./instructions")
 file_tool = FileReadTool()
 search_tool = SerperDevTool()
 
-# LLMs
-gemini_llm = LLM(provider="google_ai_studio", model="gemini/gemini-1.5-flash", api_key=os.environ["GEMINI_API_KEY"])
-cohere_llm = LLM(provider="cohere", model="command", api_key=os.environ["COHERE_API_KEY"])
-
-# Agents
+# Agents (without LLM object)
 sales_agent = Agent(
     role="Sales Representative",
     goal="Identify high-value leads",
-    backstory="You find potential leads and analyze trends.",
-    llm=gemini_llm
+    backstory="You find potential leads and analyze trends."
 )
 
 lead_sales_agent = Agent(
     role="Lead Sales Representative",
     goal="Write personalized outreach",
-    backstory="You create messages that engage leads.",
-    llm=cohere_llm
+    backstory="You create messages that engage leads."
 )
 
 analyst = Agent(
     role="Analyst",
     goal="Analyze lead data",
-    backstory="You turn raw data into clear insights.",
-    llm=gemini_llm
+    backstory="You turn raw data into clear insights."
 )
 
 # Tasks
