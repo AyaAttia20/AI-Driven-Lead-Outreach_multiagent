@@ -1,5 +1,3 @@
-# app.py
-
 import streamlit as st
 import os
 import sys
@@ -8,42 +6,58 @@ import warnings
 warnings.filterwarnings('ignore')
 sys.setrecursionlimit(5000)
 
-# Environment Setup
+# Load API keys from Streamlit secrets
 os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 os.environ["COHERE_API_KEY"] = st.secrets["COHERE_API_KEY"]
 os.environ["SERPER_API_KEY"] = st.secrets["SERPER_API_KEY"]
 
-# CrewAI and Tools
+# Import Google Gemini and Cohere clients
 import google.generativeai as genai
 import cohere
 
-from crewai import Crew, Agent, Task, LLM
+from crewai import Crew, Agent, Task
 from crewai_tools import DirectoryReadTool, FileReadTool, SerperDevTool
 from crewai.tools import BaseTool
 
-# Configure Gemini
+# Configure Gemini API
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-1.5-flash')
-co = cohere.Client(os.environ["COHERE_API_KEY"])
+gemini_model = genai.GenerativeModel('gemini-1.5-flash')
 
-# Dummy Tool
+# Initialize Cohere client
+cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
+
+# Custom LLM wrappers (since crewai's LLM import causes error)
+class GeminiLLM:
+    def __init__(self, model):
+        self.model = model
+    def generate(self, prompt: str):
+        response = self.model.generate(prompt=prompt)
+        return response.text
+
+class CohereLLM:
+    def __init__(self, client):
+        self.client = client
+    def generate(self, prompt: str):
+        response = self.client.generate(model='command', prompt=prompt, max_tokens=300)
+        return response.generations[0].text
+
+gemini_llm = GeminiLLM(gemini_model)
+cohere_llm = CohereLLM(cohere_client)
+
+# Dummy sentiment analysis tool
 class SentimentAnalysisTool(BaseTool):
     name: str = "Sentiment Analysis Tool"
     description: str = "Ensures tone is positive"
     def _run(self, text: str) -> str:
         return "positive"
 
-# Tools
+# Instantiate tools
 sentiment_tool = SentimentAnalysisTool()
 directory_tool = DirectoryReadTool(directory="./instructions")
 file_tool = FileReadTool()
 search_tool = SerperDevTool()
 
-# LLMs
-gemini_llm = LLM(provider="google_ai_studio", model="gemini/gemini-1.5-flash", api_key=os.environ["GEMINI_API_KEY"])
-cohere_llm = LLM(provider="cohere", model="command", api_key=os.environ["COHERE_API_KEY"])
-
-# Agents
+# Define Agents using your custom LLM wrappers
 sales_agent = Agent(
     role="Sales Representative",
     goal="Identify high-value leads",
@@ -65,7 +79,7 @@ analyst = Agent(
     llm=gemini_llm
 )
 
-# Tasks
+# Define the tasks for agents
 def create_tasks(lead_name, industry, milestone):
     return [
         Task(
@@ -113,7 +127,7 @@ if submitted:
     st.subheader("📩 Final Outreach Message")
     st.markdown(result)
 
-    # Download
+    # Allow downloading the outreach report
     report_path = f"AI_Lead_Report_{lead_name}.md"
     with open(report_path, "w") as f:
         f.write(result)
