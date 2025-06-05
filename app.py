@@ -6,58 +6,41 @@ import warnings
 warnings.filterwarnings('ignore')
 sys.setrecursionlimit(5000)
 
-# Load API keys from Streamlit secrets
+# Environment Setup
 os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 os.environ["COHERE_API_KEY"] = st.secrets["COHERE_API_KEY"]
 os.environ["SERPER_API_KEY"] = st.secrets["SERPER_API_KEY"]
 
-# Import Google Gemini and Cohere clients
+# Imports
 import google.generativeai as genai
 import cohere
 
-from crewai import Crew, Agent, Task
+from crewai import Crew, Agent, Task, LLM
 from crewai_tools import DirectoryReadTool, FileReadTool, SerperDevTool
-from crewai.tools import BaseTool
 
-# Configure Gemini API
+# Configure Gemini
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-1.5-flash')
+co = cohere.Client(os.environ["COHERE_API_KEY"])
 
-# Initialize Cohere client
-cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
-
-# Custom LLM wrappers (since crewai's LLM import causes error)
-class GeminiLLM:
-    def __init__(self, model):
-        self.model = model
-    def generate(self, prompt: str):
-        response = self.model.generate(prompt=prompt)
-        return response.text
-
-class CohereLLM:
-    def __init__(self, client):
-        self.client = client
-    def generate(self, prompt: str):
-        response = self.client.generate(model='command', prompt=prompt, max_tokens=300)
-        return response.generations[0].text
-
-gemini_llm = GeminiLLM(gemini_model)
-cohere_llm = CohereLLM(cohere_client)
-
-# Dummy sentiment analysis tool
-class SentimentAnalysisTool(BaseTool):
-    name: str = "Sentiment Analysis Tool"
-    description: str = "Ensures tone is positive"
+# Dummy Sentiment Tool (no inheritance from BaseTool)
+class SentimentAnalysisTool:
+    name = "Sentiment Analysis Tool"
+    description = "Ensures tone is positive"
     def _run(self, text: str) -> str:
         return "positive"
 
-# Instantiate tools
+# Tools
 sentiment_tool = SentimentAnalysisTool()
 directory_tool = DirectoryReadTool(directory="./instructions")
 file_tool = FileReadTool()
 search_tool = SerperDevTool()
 
-# Define Agents using your custom LLM wrappers
+# LLMs
+gemini_llm = LLM(provider="google_ai_studio", model="gemini/gemini-1.5-flash", api_key=os.environ["GEMINI_API_KEY"])
+cohere_llm = LLM(provider="cohere", model="command", api_key=os.environ["COHERE_API_KEY"])
+
+# Agents
 sales_agent = Agent(
     role="Sales Representative",
     goal="Identify high-value leads",
@@ -79,7 +62,7 @@ analyst = Agent(
     llm=gemini_llm
 )
 
-# Define the tasks for agents
+# Tasks
 def create_tasks(lead_name, industry, milestone):
     return [
         Task(
@@ -127,7 +110,7 @@ if submitted:
     st.subheader("📩 Final Outreach Message")
     st.markdown(result)
 
-    # Allow downloading the outreach report
+    # Download
     report_path = f"AI_Lead_Report_{lead_name}.md"
     with open(report_path, "w") as f:
         f.write(result)
