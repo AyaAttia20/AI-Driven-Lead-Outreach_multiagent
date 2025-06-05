@@ -46,15 +46,15 @@ This system is more than just a message generator — it's a complete **AI-power
 
 ---
  
-- [APP Link](https://0d56b7b215052f9670.gradio.live/) for UI 
+- [APP Link](https://0d56b7b215052f9670.gradio.live/)
+  (but it has limited time and should updated)
 
   
 ## ⚙️ Installation
 
 ```bash
 # Clone the repo
-git clone https://github.com/your-username/ai-lead-outreach-system.git
-cd ai-lead-outreach-system
+git clone  https://github.com/AyaAttia20/AI-Driven-Lead-Outreach_multiagent.git
 
 # Install dependencies
 pip install -U crewai crewai_tools langchain_community cohere google-generativeai streamlit gradio
